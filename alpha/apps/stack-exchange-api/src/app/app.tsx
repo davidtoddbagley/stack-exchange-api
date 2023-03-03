@@ -189,11 +189,15 @@ export const App = () => {
         <h1>Welcome to stack-exchange-api!</h1>
         <span>Health Check: {healthCheck.message}</span>
         <p>
-          <button onClick={() => q1()}>
+          <button
+            id="btn-q1+3"
+            onClick={() => q1()}>
             Questions 1 & 3
           </button>
           &nbsp;
-          <button onClick={() => q2()}>
+          <button
+            id="btn-q2"
+            onClick={() => q2()}>
             Question 2
           </button>
         </p>
