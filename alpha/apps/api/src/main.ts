@@ -8,6 +8,9 @@ const app = express();
 
 app.use(express.json());
 
+/**
+ * Route: GET Health Check
+ */
 app.get('/api/health-check', (req, res) => {
   try {
     const msg: Message = {
@@ -19,6 +22,12 @@ app.get('/api/health-check', (req, res) => {
   }
 });
 
+/**
+ * Route: GET Users (by Reputation)
+ * 
+ * max = maximum number of records to be returned
+ * days = max number of days since joining (elt = "less than or equal to")
+ */
 app.get('/api/users/:max([0-9]{2,})/days-joined-elt/:days([0-9]{2,})', async (req, res) => {
   try {
     const { days, max } = req.params;
@@ -36,6 +45,9 @@ app.get('/api/users/:max([0-9]{2,})/days-joined-elt/:days([0-9]{2,})', async (re
   }
 });
 
+/**
+ * Route: POST Users With Answered Questions
+ */
 app.post('/api/users/answers', async (req, res) => {
   try {
     const { userIds } = req.body;
@@ -53,6 +65,9 @@ app.post('/api/users/answers', async (req, res) => {
   }
 });
 
+/**
+ * Route: POST Users Who Have Asked Questions
+ */
 app.post('/api/users/questions', async (req, res) => {
   try {
     const { userIds } = req.body;
