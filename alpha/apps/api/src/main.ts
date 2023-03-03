@@ -1,14 +1,14 @@
+import { Message, StackExchangeResponse, User, UserQuestions } from '@alpha/api-interfaces';
 import * as express from 'express';
 import * as moment from 'moment';
 import * as stackExchange from 'stack-exchange';
-import { Message, StackExchangeResponse, User, UserQuestions } from '@alpha/api-interfaces';
+import { environment as env } from './environments/environment.prod';
 
 const app = express();
 
 app.use(express.json());
 
 app.get('/api/health-check', (req, res) => {
-  console.log('get::/api/health-check');
   try {
     const msg: Message = {
       message: `API Server functional as of ${moment().toISOString()}`
@@ -20,18 +20,15 @@ app.get('/api/health-check', (req, res) => {
 });
 
 app.get('/api/users/:max([0-9]{2,})/days-joined-elt/:days([0-9]{2,})', async (req, res) => {
-  console.log('get::/api/users/:max([0-9]{2,})/days-joined-elt/:days([0-9]{2,})');
   try {
     const { days, max } = req.params;
 
     const fromdate = days ? moment().subtract(30, 'days').unix() : 0;
     const topUsersByRepJoinedAfterFromDate = await getUsersByReputation(fromdate);
-    console.log('usersJoinedSinceFromDate', topUsersByRepJoinedAfterFromDate[0]);
   
     let cnt = 0;
     const topUsers_limitByMax = topUsersByRepJoinedAfterFromDate
       .filter(() => cnt++ < parseInt(max,0));
-    console.log('topUsers_limitByMax', topUsers_limitByMax.length);
   
     res.send(topUsers_limitByMax);  
   } catch (err) {
@@ -40,10 +37,8 @@ app.get('/api/users/:max([0-9]{2,})/days-joined-elt/:days([0-9]{2,})', async (re
 });
 
 app.post('/api/users/answers', async (req, res) => {
-  console.log('post::/api/users/answers');
   try {
     const { userIds } = req.body;
-    console.log({userIds});
   
     const usersWithAnsweredQuestions = [];
     const questions = await getUsersWhoAskedAQuestionByUserIds(userIds);
@@ -51,7 +46,6 @@ app.post('/api/users/answers', async (req, res) => {
       if (!question.is_answered) { return }
       usersWithAnsweredQuestions.push(question.owner.user_id);
     });
-    console.log('usersWithAnsweredQuestions', usersWithAnsweredQuestions);
   
     res.send(usersWithAnsweredQuestions);  
   } catch (err) {
@@ -60,17 +54,14 @@ app.post('/api/users/answers', async (req, res) => {
 });
 
 app.post('/api/users/questions', async (req, res) => {
-  console.log('post::/api/users/questions');
   try {
     const { userIds } = req.body;
-    console.log({userIds});
   
     const usersWhoAskedQuestions = [];
     const questions = await getUsersWhoAskedAQuestionByUserIds(userIds);
     questions.map(question => {
       usersWhoAskedQuestions.push(question.owner.user_id);
     });
-    console.log('usersWhoAskedQuestions', usersWhoAskedQuestions);
   
     res.send(usersWhoAskedQuestions);
   } catch (err) {
@@ -101,17 +92,23 @@ function apiStackExchangeResponse(seResponse: string): any {
   if (typeof seResponse !== 'string') { isDown = true; }
   if (seResponse[0] !== '{') { isDown = true; }
   if (isDown) {
-    console.log('apiStackExchangeResponse', seResponse);
+    if (!env.production) {
+      console.log('apiStackExchangeResponse', seResponse);
+    }
     throw new Error('Stack Exchange API is DOWN !!!');
   }
 
   const obj: StackExchangeResponse = JSON.parse(seResponse);
   if (obj?.error_id) {
-    console.log('apiStackExchangeResponse', seResponse);
+    if (!env.production) {
+      console.log('apiStackExchangeResponse', seResponse);
+    }
     throw new Error('Stack Exchange API is DOWN !!!');
   }
-  const percentage = (obj.quota_remaining/obj.quota_max*100).toFixed(2);
-  console.log(`${percentage}% of API Call Capacity Remaining`);
+  if (!env.production) {
+    const percentage = (obj.quota_remaining/obj.quota_max*100).toFixed(2);
+    console.log(`${percentage}% of API Call Capacity Remaining`);
+  }
   return obj?.items || [];
 }
 
@@ -155,7 +152,9 @@ async function getUsersWhoAskedAQuestionByUserIds(userIds: number[]): Promise<Us
   });
 }
 
-(async () => {
-  const users = await getUsersByReputation();
-  console.log(`test api call yields ${users?.length} users`);
-})()
+if (!env.production) {
+  (async () => {
+    const users = await getUsersByReputation();
+    console.log(`test api call yields ${users?.length} users`);
+  })();
+}
