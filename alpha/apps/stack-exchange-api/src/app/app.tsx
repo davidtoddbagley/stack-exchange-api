@@ -12,6 +12,11 @@ export const App = () => {
   ] = useState<boolean>(false);
 
   const [
+    numberOfUsersWithMultipleQuestions,
+    setNumberOfUsersWithMultipleQuestions
+  ] = useState<number>(0);
+
+  const [
     healthCheck,
     setHealthCheck
   ] = useState<Message>({ message: '' });
@@ -30,6 +35,21 @@ export const App = () => {
     gotAnswer,
     setGotAnswer
   ] = useState<number[]>();
+
+  function getCountUsersWithMultipleQuestions(usersWithQuestions: any[]): void {
+    const userIds: any = {};
+    const usersWithMoreThanOneQuestion: number[] = [];
+    usersWithQuestions.map(userId => {
+      const key = `_${userId}`;
+      if (!userIds[key]) {
+        userIds[key] = 1;
+      } else if (usersWithMoreThanOneQuestion.indexOf(userId) === -1) {
+        usersWithMoreThanOneQuestion.push(userId)
+      }
+      return userId;
+    });
+    setNumberOfUsersWithMultipleQuestions(usersWithMoreThanOneQuestion.length);
+  }
 
   function getMultipleQuestions(): number[] {
     return askedQuestion?.filter((val, i) => askedQuestion?.indexOf(val) !== i) || [];
@@ -60,7 +80,7 @@ export const App = () => {
     );
     return (
       <div>
-        <ul>{listItems}</ul>
+        <ol>{listItems}</ol>
         <span>Total Answers: { _?.length }</span>
         <p style={{ fontSize: '0.8em' }}>
           {JSON.stringify(_)}
@@ -95,7 +115,7 @@ export const App = () => {
     );
     return (
       <div>
-        <ul>{listItems}</ul>
+        <ol>{listItems}</ol>
         <span>Total Answers: { _?.length }</span>
         <p style={{ fontSize: '0.8em' }}>
           {JSON.stringify(_)}
@@ -156,12 +176,18 @@ export const App = () => {
           body: JSON.stringify({ userIds })
         })
         .then((r) => r.json())
-        .then(setAskedQuestion)
+        .then(data => {
+          setAskedQuestion(data);
+          getCountUsersWithMultipleQuestions(data);
+        })
         .catch(function(error) { 
+          setDownloadInProgress(false);
           console.log('/api/users/questions', error) 
         });
     })
-    .then(() => setDownloadInProgress(false))
+    .then(() => setTimeout(() => {
+      setDownloadInProgress(false);
+    }, 1))
     .catch(function(error) { 
       console.log('/api/users/20/days-joined-elt/30 Failed', error) 
     });
@@ -180,9 +206,12 @@ export const App = () => {
       })
       .then((r) => r.json())
       .then(setGotAnswer)
-      .then(() => setDownloadInProgress(false))
+      .then(() => setTimeout(() => {
+        setDownloadInProgress(false);
+      }, 1))
       .catch(function(error) { 
-        console.log('/api/users/answers', error) 
+        setDownloadInProgress(false);
+        console.log('/api/users/answers', error);
       });
   }
 
@@ -252,9 +281,7 @@ export const App = () => {
               <ul style={{ fontSize: '0.5em' }}>
                 <li>
                   Top 20 New Users by Reputation
-                    <ol>
-                      <li>{ListItemsQuestions(top20UsersJoinedLessThan30DaysAgo || [])}</li>
-                    </ol>
+                  {ListItemsQuestions(top20UsersJoinedLessThan30DaysAgo || [])}
                 </li>
               </ul>
               : '' 
@@ -267,24 +294,20 @@ export const App = () => {
               <ul style={{ fontSize: '0.5em' }}>
                 <li>
                   Users with Answers
-                    <ol>
-                      <li>{ListItemsAnswers(top20UsersJoinedLessThan30DaysAgo || [])}</li>
-                    </ol>
+                  {ListItemsAnswers(top20UsersJoinedLessThan30DaysAgo || [])}
                 </li>
               </ul>
               : '' 
             }
           </li>
           <li style={{ margin: '1.5em 0' }}>
-            Have any of these users asked multiple questions? { getMultipleQuestions().length }
+            Have any of these users asked multiple questions? {numberOfUsersWithMultipleQuestions || 0}
             {
               gotAnswer?.length && getMultipleQuestions()?.length ?
               <ul style={{ fontSize: '0.5em' }}>
                 <li>
                   Top 20 New Users by Reputation
-                    <ol>
-                      <li>{ListItemsMultiple(top20UsersJoinedLessThan30DaysAgo || [])}</li>
-                    </ol>
+                  {ListItemsMultiple(top20UsersJoinedLessThan30DaysAgo || [])}
                 </li>
               </ul>
               : '' 
