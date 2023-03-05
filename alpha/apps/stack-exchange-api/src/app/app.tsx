@@ -242,7 +242,7 @@ export const App = () => {
             { !askedQuestion?.length ?
               <button
                 className="btn btn-primary"
-                id="btn-q1+3"
+                data-cy="btn-q1"
                 onClick={() => q1()}>
                 REQUEST ANSWERS
               </button>
@@ -252,7 +252,7 @@ export const App = () => {
             { askedQuestion?.length && !gotAnswer?.length ?
               <button
                 className="btn btn-success"
-                id="btn-q2"
+                data-cy="btn-q2"
                 onClick={() => q2()}>
                 CONTINUE
               </button>
@@ -264,7 +264,8 @@ export const App = () => {
         :
           <p style={{ margin: '3vh 0' }}>
             <button
-              className="btn btn-link">
+              className="btn btn-link"
+              data-cy="btn-spin">
               <FontAwesomeIcon icon={faSpinner} spinPulse />
             </button>
           </p>

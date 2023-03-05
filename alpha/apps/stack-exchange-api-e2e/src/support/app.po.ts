@@ -1,1 +1,3 @@
-export const getGreeting = () => cy.get('h1');
+export const byData = (data: string) => cy.getInput(`[data-cy="${data}"]`);
+export const byId = (id: string) => cy.getInput(id);
+export const getH1 = () => cy.get('h1');

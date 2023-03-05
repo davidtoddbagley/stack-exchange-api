@@ -12,6 +12,7 @@
 declare namespace Cypress {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Chainable<Subject> {
+    getInput(input: string): any;
     login(email: string, password: string): void;
   }
 }
@@ -31,3 +32,7 @@ Cypress.Commands.add('login', (email, password) => {
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('getInput', input => {
+  cy.get(input);
+});
