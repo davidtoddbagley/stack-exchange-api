@@ -1,8 +1,16 @@
+import { Message, User } from '@alpha/api-interfaces';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import '@fortawesome/fontawesome-svg-core/styles.css';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
-import { Message, User } from '@alpha/api-interfaces';
 
 export const App = () => {
+  const [
+    downloadInProgress,
+    setDownloadInProgress
+  ] = useState<boolean>(false);
+
   const [
     healthCheck,
     setHealthCheck
@@ -133,6 +141,7 @@ export const App = () => {
   }
 
   function q1() {
+    setDownloadInProgress(true);
     fetch('/api/users/20/days-joined-elt/30')
     .then((r) => r.json())
     .then(users => {
@@ -152,12 +161,14 @@ export const App = () => {
           console.log('/api/users/questions', error) 
         });
     })
+    .then(() => setDownloadInProgress(false))
     .catch(function(error) { 
       console.log('/api/users/20/days-joined-elt/30 Failed', error) 
     });
   }
 
   function q2() {
+    setDownloadInProgress(true);
     const userIds = top20UsersJoinedLessThan30DaysAgo?.map((user: User) => user.user_id) || [];
     fetch('/api/users/answers', {
         method: 'POST',
@@ -169,6 +180,7 @@ export const App = () => {
       })
       .then((r) => r.json())
       .then(setGotAnswer)
+      .then(() => setDownloadInProgress(false))
       .catch(function(error) { 
         console.log('/api/users/answers', error) 
       });
@@ -185,22 +197,49 @@ export const App = () => {
 
   return (
     <>
-      <div style={{ textAlign: 'center' }}>
-        <h1>Welcome to stack-exchange-api!</h1>
-        <span>Health Check: {healthCheck.message}</span>
-        <p>
-          <button
-            id="btn-q1+3"
-            onClick={() => q1()}>
-            Questions 1 & 3
-          </button>
-          &nbsp;
-          <button
-            id="btn-q2"
-            onClick={() => q2()}>
-            Question 2
-          </button>
-        </p>
+      <div style={{
+        margin: '3vh 0',
+        textAlign: 'center'
+      }}>
+        <h1>stack-exchange-api</h1>
+        <span style={{
+          color: '#b3b3b3',
+          fontSize: '0.5em'
+        }}>
+          Health Check: {healthCheck.message}
+        </span>
+        { !downloadInProgress ?
+          <p style={{ margin: '3vh 0' }}>
+            { !askedQuestion?.length ?
+              <button
+                className="btn btn-primary"
+                id="btn-q1+3"
+                onClick={() => q1()}>
+                REQUEST ANSWERS
+              </button>
+            :
+              '' 
+            }
+            { askedQuestion?.length && !gotAnswer?.length ?
+              <button
+                className="btn btn-success"
+                id="btn-q2"
+                onClick={() => q2()}>
+                CONTINUE
+              </button>
+            :
+              '' 
+            }
+
+          </p>
+        :
+          <p style={{ margin: '3vh 0' }}>
+            <button
+              className="btn btn-link">
+              <FontAwesomeIcon icon={faSpinner} spinPulse />
+            </button>
+          </p>
+        }
       </div>
       <div>
         <ol>
@@ -210,10 +249,12 @@ export const App = () => {
             How many of those users have asked a question? {[...new Set(askedQuestion || [])].length || 0}
             {
               askedQuestion?.length ?
-              <ul>
+              <ul style={{ fontSize: '0.5em' }}>
                 <li>
                   Top 20 New Users by Reputation
-                    <ol>{ListItemsQuestions(top20UsersJoinedLessThan30DaysAgo || [])}</ol>
+                    <ol>
+                      <li>{ListItemsQuestions(top20UsersJoinedLessThan30DaysAgo || [])}</li>
+                    </ol>
                 </li>
               </ul>
               : '' 
@@ -223,10 +264,12 @@ export const App = () => {
             How many of those questions have been answered? {gotAnswer?.length || 0}
             {
               gotAnswer?.length ?
-              <ul>
+              <ul style={{ fontSize: '0.5em' }}>
                 <li>
                   Users with Answers
-                    <ol>{ListItemsAnswers(top20UsersJoinedLessThan30DaysAgo || [])}</ol>
+                    <ol>
+                      <li>{ListItemsAnswers(top20UsersJoinedLessThan30DaysAgo || [])}</li>
+                    </ol>
                 </li>
               </ul>
               : '' 
@@ -235,11 +278,13 @@ export const App = () => {
           <li style={{ margin: '1.5em 0' }}>
             Have any of these users asked multiple questions? { getMultipleQuestions().length }
             {
-              getMultipleQuestions()?.length ?
-              <ul>
+              gotAnswer?.length && getMultipleQuestions()?.length ?
+              <ul style={{ fontSize: '0.5em' }}>
                 <li>
                   Top 20 New Users by Reputation
-                    <ol>{ListItemsMultiple(top20UsersJoinedLessThan30DaysAgo || [])}</ol>
+                    <ol>
+                      <li>{ListItemsMultiple(top20UsersJoinedLessThan30DaysAgo || [])}</li>
+                    </ol>
                 </li>
               </ul>
               : '' 
