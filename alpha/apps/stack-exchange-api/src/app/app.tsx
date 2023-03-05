@@ -36,6 +36,11 @@ export const App = () => {
     setGotAnswer
   ] = useState<number[]>();
 
+  const [
+    details,
+    toggleDetails
+  ] = useState<boolean>(false);
+
   function getCountUsersWithMultipleQuestions(usersWithQuestions: any[]): void {
     const userIds: any = {};
     const usersWithMoreThanOneQuestion: number[] = [];
@@ -53,6 +58,41 @@ export const App = () => {
 
   function getMultipleQuestions(): number[] {
     return askedQuestion?.filter((val, i) => askedQuestion?.indexOf(val) !== i) || [];
+  }
+
+  function displayQandA(q: string, n: number) {
+    const backgroundColor = n ? '#0d6efd' : '#b3b3b3';
+    const border = n ? '1px solid #0a58ca' : '1px solid #808080';
+    return (
+      <div style={{
+        display: 'inline',
+        float: 'left',
+        width: '80vw'
+      }}>
+        <span style={{
+          float: 'left',
+          margin: '0 1em',
+          textAlign: 'right',
+          width: '50vw'
+        }}>
+          {q}
+        </span>
+        <span style={{
+          backgroundColor,
+          border,
+          borderRadius: '20px',
+          color: 'white',
+          float: 'left',
+          margin: '-0.15em 1em 0',
+          minWidth: '80px',
+          padding: '0.1em .5em',
+          textAlign: 'center',
+          width: 'auto'
+        }}>
+          {n}
+        </span>
+      </div>
+    );
   }
 
   function ListItemsAnswers(users: User[]) {
@@ -79,13 +119,10 @@ export const App = () => {
       </li>
     );
     return (
-      <div>
+      <div className='list-items'>
         <ol>{listItems}</ol>
+        <p>{JSON.stringify(_)}</p>
         <span>Total Answers: { _?.length }</span>
-        <p style={{ fontSize: '0.8em' }}>
-          {JSON.stringify(_)}
-        </p>
-        &nbsp;
       </div>
     );
   }
@@ -95,7 +132,7 @@ export const App = () => {
     const listItems = users.map((user: User) =>
       <li
         style={{
-          color: _?.indexOf(user.user_id) === -1 ? '#b3b3b3' : 'blue',
+          color: _?.indexOf(user.user_id) === -1 ? '#b3b3b3' : '#0d6efd',
           fontSize: '0.8em',
           maxWidth: '250px'
         }}
@@ -110,17 +147,22 @@ export const App = () => {
         &nbsp;
         &nbsp;
         &nbsp;
-        { _?.indexOf(user.user_id) > -1 ? <span style={{ float: 'right' }}>q's: {_?.filter(x => x == user.user_id).length}</span> : (_?.indexOf(user?.user_id) > -1) }
+        { _?.indexOf(user.user_id) > -1 ? <span style={{ float: 'right' }}>q's: {
+            _?.filter(x => x === user.user_id).length + 1
+          }</span> : (_?.indexOf(user?.user_id) > -1) }
       </li>
     );
+
+    const sum = users.map((user: User) => {
+      const multipleQuestions = _?.filter(x => x === user.user_id).length + 1;
+      return multipleQuestions > 1 ? multipleQuestions : 0; 
+    });
+    console.log(sum);
     return (
-      <div>
+      <div className='list-items'>
         <ol>{listItems}</ol>
-        <span>Total Answers: { _?.length }</span>
-        <p style={{ fontSize: '0.8em' }}>
-          {JSON.stringify(_)}
-        </p>
-        &nbsp;
+        <p>{JSON.stringify(_)}</p>
+        <span>Total Answers: { sum.reduce((a,v) => a+v, 0) }</span>
       </div>
     );
   }
@@ -149,15 +191,16 @@ export const App = () => {
       </li>
     );
     return (
-      <div>
-        <ul>{listItems}</ul>
+      <div className='list-items'>
+        <ol>{listItems}</ol>
+        <p>{JSON.stringify(_)}</p>
         <span>Total Questions: { _?.length }</span>
-        <p style={{ fontSize: '0.8em' }}>
-          {JSON.stringify(_)}
-        </p>
-        &nbsp;
       </div>
     );
+  }
+
+  function toggle() {
+    toggleDetails(!details);
   }
 
   function q1() {
@@ -246,8 +289,7 @@ export const App = () => {
                 onClick={() => q1()}>
                 REQUEST ANSWERS
               </button>
-            :
-              '' 
+            : ''
             }
             { askedQuestion?.length && !gotAnswer?.length ?
               <button
@@ -256,8 +298,17 @@ export const App = () => {
                 onClick={() => q2()}>
                 CONTINUE
               </button>
-            :
-              '' 
+            : ''
+          }
+            { askedQuestion?.length && gotAnswer?.length ?
+              <button
+                className="btn btn-link"
+                data-cy="btn-toggle"
+                onClick={() => toggle()}
+                style={{ textDecoration: 'none' }}>
+                { details ? 'Hide' : 'Show' } Details
+              </button>
+            : ''
             }
 
           </p>
@@ -272,48 +323,53 @@ export const App = () => {
         }
       </div>
       <div>
-        <ol>
-          <li style={{ margin: '1.5em 0' }}>
-            Of the top 20 users by reputation who joined StackOverflow in the last month ({top20UsersJoinedLessThan30DaysAgo?.length || 0})...
-            <p></p>
-            How many of those users have asked a question? {[...new Set(askedQuestion || [])].length || 0}
-            {
-              askedQuestion?.length ?
-              <ul style={{ fontSize: '0.5em' }}>
-                <li>
-                  Top 20 New Users by Reputation
-                  {ListItemsQuestions(top20UsersJoinedLessThan30DaysAgo || [])}
-                </li>
-              </ul>
-              : '' 
-            }
+        <p>
+          Of the top 20 users by reputation who joined StackOverflow in the last month ({top20UsersJoinedLessThan30DaysAgo?.length || 0})...
+        </p>
+        <ol className='questions'>
+          <li>
+            
+            {displayQandA(
+              'How many asked a question?',
+              [...new Set(askedQuestion || [])].length || 0
+            )}
           </li>
-          <li style={{ margin: '1.5em 0' }}>
-            How many of those questions have been answered? {gotAnswer?.length || 0}
-            {
-              gotAnswer?.length ?
-              <ul style={{ fontSize: '0.5em' }}>
-                <li>
-                  Users with Answers
-                  {ListItemsAnswers(top20UsersJoinedLessThan30DaysAgo || [])}
-                </li>
-              </ul>
-              : '' 
-            }
+          {
+            details && askedQuestion?.length ?
+            <div className='details'>
+              <h5>Top 20 New Users by Reputation (with Join Date and Questions Asked)</h5>
+              {ListItemsQuestions(top20UsersJoinedLessThan30DaysAgo || [])}
+            </div>
+            : '' 
+          }
+          <li>
+            {displayQandA(
+              'How many questions have been answered?',
+              gotAnswer?.length || 0
+            )}
           </li>
-          <li style={{ margin: '1.5em 0' }}>
-            Have any of these users asked multiple questions? {numberOfUsersWithMultipleQuestions || 0}
-            {
-              gotAnswer?.length && getMultipleQuestions()?.length ?
-              <ul style={{ fontSize: '0.5em' }}>
-                <li>
-                  Top 20 New Users by Reputation
-                  {ListItemsMultiple(top20UsersJoinedLessThan30DaysAgo || [])}
-                </li>
-              </ul>
-              : '' 
-            }
+          {
+            details && gotAnswer?.length ?
+            <div className='details'>
+              <h5>Top 20 New Users by Reputation (with Join Date and Questions Answered)</h5>
+              {ListItemsAnswers(top20UsersJoinedLessThan30DaysAgo || [])}
+            </div>
+            : '' 
+          }
+          <li>
+            {displayQandA(
+              'How many asked multiple questions?',
+              numberOfUsersWithMultipleQuestions || 0
+            )}
           </li>
+          {
+            details && gotAnswer?.length && getMultipleQuestions()?.length ?
+            <div className='details'>
+              <h5>Top 20 New Users by Reputation (with Join Date and Questions Asked)</h5>
+              {ListItemsMultiple(top20UsersJoinedLessThan30DaysAgo || [])}
+            </div>
+            : '' 
+          }
         </ol>
       </div>
     </>
