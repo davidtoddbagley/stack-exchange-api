@@ -1,5 +1,14 @@
 # nx-node-react-bagley
 
+## NX Monorepo
+
+Nx monorepo simplifies full-stack app coordiation challenge by enabling the sharing of `Typescript` and other resources across front and backends.
+
+To prepare your environment, please visit the following:
+```
+https://www.npmjs.com/package/nx
+https://nx.dev/getting-started
+```
 ## DEPLOY TO LOCAL
 
 1. clone `GitHub` repo to your local 
