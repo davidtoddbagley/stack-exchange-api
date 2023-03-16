@@ -1,5 +1,65 @@
 # nx-node-react-bagley
 
+## NX Monorepo
+
+Nx monorepo simplifies full-stack app coordiation challenge by enabling the sharing of `Typescript` and other resources across front and backends.
+
+To prepare your environment, please visit the following:
+```
+https://www.npmjs.com/package/nx
+https://nx.dev/getting-started
+```
+## DEPLOY TO LOCAL
+
+1. clone `GitHub` repo to your local 
+```
+https://github.com/davidtoddbagley/stack-exchange-api
+```
+2. switch to `develop` branch
+3. using a terminal, navigate to the project folder
+4. navigate into the `/alpha` directory
+```
+cd alpha
+```
+5. install the project
+```
+npm install
+```
+6. launch the backend Node Nest API server
+```
+nx serve api
+```
+7. in a new terminal, navigate to the `/alpha` folder and launch the front-ed React app
+```
+nx serve stack-exchange-api
+```
+8. open a web browser and point it at `http://localhost:4200`
+
+
+## Unit Tests: Front + Backend
+
+1. in a new terminal, navigate to the `/alpha` folder and launch the unit tests
+```
+npx nx run-many --all --target=test
+```
+
+
+## e2e Integration Tests
+
+1. the backend Node Nest API server should be running
+```
+nx serve api
+```
+2. in a new terminal, navigate to the `/alpha` folder and launch the e2e tests
+```
+nx run stack-exchange-api-e2e:e2e --watch
+```
+3. click on the `app.spec.ts` link _(after the Cypress tool GUI launches)_
+
+---
+
+## DETAILS
+
 ### Client Id
 ```
 25544
